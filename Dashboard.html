@@ -252,7 +252,7 @@ google.script.run
   .withFailureHandler(function(err){
     document.getElementById('loading-wrap').textContent='โหลดข้อมูลไม่สำเร็จ: '+err.message;
   })
-  .getData();
+  .getDataJson();
 </script>
 </body>
 </html>
