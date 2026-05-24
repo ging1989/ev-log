@@ -155,8 +155,8 @@ function render(){
   const disc=data.reduce((s,d)=>s+d.discount,0);
   const n=data.length;
   document.getElementById('s-total').textContent=fmt(total);
-  document.getElementById('s-kwh').textContent=kwh.toFixed(1);
-  document.getElementById('s-avg').textContent=n?(total/n).toFixed(0):'0';
+  document.getElementById('s-kwh').textContent=kwh.toFixed(2);
+  document.getElementById('s-avg').textContent=n?(total/n).toFixed(2):'0';
   document.getElementById('s-cpk').textContent=kwh?(total/kwh).toFixed(2):'0';
   document.getElementById('s-disc').textContent=fmt(disc);
   document.getElementById('s-sess').textContent=n;
@@ -212,7 +212,7 @@ function renderKwh(data){
 
 function renderRecent(data){
   const sorted=[...data].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,10);
-  document.getElementById('recent-body').innerHTML=sorted.map(d=>`<tr><td>${d.date.split('-').reverse().join('-')}</td><td>${d.station}</td><td>${d.trip?`<span class="badge-trip">${d.trip}</span>`:'—'}</td><td>${d.kwh.toFixed(1)}</td><td>${d.priceBeforeDiscount.toFixed(0)}</td><td>${d.discount?d.discount.toFixed(0):'—'}</td><td><strong>${d.finalPrice.toFixed(0)}</strong></td><td>${d.bahtPerKwh?d.bahtPerKwh.toFixed(2):'—'}</td></tr>`).join('');
+  document.getElementById('recent-body').innerHTML=sorted.map(d=>`<tr><td>${d.date.split('-').reverse().join('-')}</td><td>${d.station}</td><td>${d.trip?`<span class="badge-trip">${d.trip}</span>`:'—'}</td><td>${d.kwh.toFixed(2)}</td><td>${d.priceBeforeDiscount.toFixed(2)}</td><td>${d.discount?d.discount.toFixed(2):'—'}</td><td><strong>${d.finalPrice.toFixed(2)}</strong></td><td>${d.bahtPerKwh?d.bahtPerKwh.toFixed(2):'—'}</td></tr>`).join('');
 }
 
 function buildYearFilter(){
