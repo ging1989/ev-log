@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>บันทึกการชาร์จ EV</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&family=Noto+Sans+Thai:wght@100..900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans Thai', sans-serif;
+      background: #f4f4f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem;
+      color: #1a1a1a;
+    }
+
+    .ev-wrap { width: 100%; max-width: 480px; }
+
+    .ev-card {
+      background: #ffffff;
+      border: 0.5px solid rgba(0,0,0,0.12);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .ev-header { display: flex; align-items: center; gap: 12px; margin-bottom: 1.75rem; }
+
+    .ev-icon {
+      width: 44px; height: 44px;
+      background: #E6F1FB;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .ev-title { font-family: 'Google Sans', 'Noto Sans Thai', sans-serif; font-size: 18px; font-weight: 600; color: #1a1a1a; }
+    .ev-sub { font-size: 13px; color: #888; margin-top: 2px; }
+
+    .field { margin-bottom: 1.25rem; }
+
+    .field label {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 13px; font-weight: 500; color: #555; margin-bottom: 6px;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 9px 12px;
+      font-family: 'Noto Sans Thai', sans-serif;
+      font-size: 15px;
+      color: #1a1a1a;
+      background: #fff;
+      border: 0.5px solid rgba(0,0,0,0.2);
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .field input:hover { border-color: rgba(0,0,0,0.35); }
+    .field input:focus { border-color: #185FA5; box-shadow: 0 0 0 3px rgba(24,95,165,0.12); }
+    .field input::placeholder { color: #bbb; }
+
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.25rem; }
+    .field-row .field { margin-bottom: 0; }
+
+    .badge {
+      font-size: 11px; background: #E1F5EE; color: #0F6E56;
+      padding: 2px 8px; border-radius: 99px; font-weight: 500;
+    }
+
+    .divider { height: 0.5px; background: rgba(0,0,0,0.1); margin: 1.5rem 0; }
+
+    .summary-box { background: #f7f6f2; border-radius: 10px; padding: 1rem 1.25rem; margin-top: 1.5rem; }
+
+    .summary-row {
+      display: flex; justify-content: space-between; align-items: baseline;
+      font-size: 13px; color: #666; padding: 4px 0;
+    }
+
+    .summary-row.total { border-top: 0.5px solid rgba(0,0,0,0.1); margin-top: 6px; padding-top: 10px; }
+    .summary-row.total span:last-child {
+      font-family: 'Google Sans', 'Noto Sans Thai', sans-serif; font-size: 20px; font-weight: 600; color: #1a1a1a;
+    }
+
+    .submit-btn {
+      width: 100%; margin-top: 1.25rem; padding: 12px;
+      font-family: 'Noto Sans Thai', sans-serif; font-size: 15px; font-weight: 500;
+      background: #185FA5; color: white; border: none; border-radius: 8px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .submit-btn:hover { background: #0C447C; }
+    .submit-btn:active { transform: scale(0.98); }
+    .submit-btn:disabled { background: #aaa; cursor: not-allowed; transform: none; }
+
+    .report-btn {
+      width: 100%; margin-top: 10px; padding: 11px;
+      font-family: 'Noto Sans Thai', sans-serif; font-size: 14px; font-weight: 500;
+      background: transparent; color: #185FA5;
+      border: 1px solid #185FA5; border-radius: 8px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: background 0.15s, transform 0.1s; text-decoration: none;
+    }
+
+    .report-btn:hover { background: #E6F1FB; }
+    .report-btn:active { transform: scale(0.98); }
+
+    .toast {
+      display: none; margin-top: 1rem; padding: 10px 14px;
+      background: #E1F5EE; border: 0.5px solid #5DCAA5;
+      border-radius: 8px; font-size: 13px; color: #0F6E56; text-align: center;
+    }
+
+    .error {
+      display: none; margin-top: 1rem; padding: 10px 14px;
+      background: #FCEBEB; border: 0.5px solid #F09595;
+      border-radius: 8px; font-size: 13px; color: #A32D2D; text-align: center;
+    }
+
+    .field select {
+      width: 100%;
+      padding: 9px 12px;
+      font-family: 'Noto Sans Thai', sans-serif;
+      font-size: 15px;
+      color: #1a1a1a;
+      background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 12px center;
+      border: 0.5px solid rgba(0,0,0,0.2);
+      border-radius: 8px;
+      outline: none;
+      appearance: none;
+      cursor: pointer;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .field select:hover { border-color: rgba(0,0,0,0.35); }
+    .field select:focus { border-color: #185FA5; box-shadow: 0 0 0 3px rgba(24,95,165,0.12); }
+
+    .peak-toggle { display: flex; gap: 8px; margin-top: 8px; }
+    .peak-btn {
+      flex: 1; padding: 8px 0;
+      font-family: 'Noto Sans Thai', sans-serif; font-size: 13px; font-weight: 500;
+      background: #f4f4f0; color: #555;
+      border: 0.5px solid rgba(0,0,0,0.2); border-radius: 8px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .peak-btn:hover:not(.active) { border-color: rgba(0,0,0,0.35); background: #ebebeb; }
+    .peak-btn.active { background: #185FA5; color: #fff; border-color: #185FA5; }
+    .rate-info {
+      margin-top: 6px; font-size: 12px; color: #888;
+      padding: 5px 10px; background: #f7f6f2; border-radius: 6px;
+    }
+    .rate-info strong { color: #185FA5; }
+
+  </style>
+</head>
+
+<body>
+  <div class="ev-wrap">
+    <div class="ev-card">
+      <div class="ev-header">
+        <div class="ev-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#185FA5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+        </div>
+        <div>
+          <p class="ev-title">บันทึกการชาร์จ EV</p>
+          <p class="ev-sub">กรอกข้อมูลการชาร์จรถไฟฟ้า</p>
+        </div>
+      </div>
+
+      <div class="field">
+        <label><span>Date — วันที่ชาร์จ</span></label>
+        <input type="date" id="charge-date" />
+      </div>
+
+      <div class="field">
+        <label><span>Station สถานีชาร์จ</span></label>
+        <select id="station" onchange="handleStationChange()">
+          <option value="" disabled selected>เลือกสถานีชาร์จ</option>
+        </select>
+        <input type="text" id="station-custom" placeholder="พิมพ์ชื่อสถานีใหม่"
+          style="display:none; margin-top:8px;">
+        <div class="peak-toggle" id="peak-toggle" style="display:none;">
+          <button type="button" class="peak-btn" id="btn-onpeak" onclick="setPeak('on')">On-Peak</button>
+          <button type="button" class="peak-btn" id="btn-offpeak" onclick="setPeak('off')">Off-Peak</button>
+        </div>
+        <div class="rate-info" id="rate-info" style="display:none;">
+          อัตรา: <strong id="rate-value">—</strong> ฿/kWh
+        </div>
+      </div>
+
+      <div class="field">
+        <label><span>Trip — ทริป</span><span class="badge">ไม่บังคับ</span></label>
+        <input type="text" id="trip" placeholder="เช่น เชียงใหม่, ไปทำงาน..." />
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="field-row">
+        <div class="field">
+          <label><span>Price Before Discount</span></label>
+          <input type="number" id="price" placeholder="0.00" min="0" step="0.01" oninput="priceEdited()" />
+        </div>
+        <div class="field">
+          <label><span>kwh</span></label>
+          <input type="number" id="kwh" placeholder="0.0" min="0" step="0.1" oninput="autoFillPrice(); calcTotal()" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label><span>Discount - ส่วนลด</span><span class="badge">ไม่บังคับ</span></label>
+        <input type="number" id="discount" placeholder="0.00 บาท" min="0" step="0.01" oninput="calcTotal()" />
+      </div>
+
+      <div class="summary-box">
+        <div class="summary-row">
+          <span>Baht/Kwh</span>
+          <span id="baht-kwh">— บาท/kWh</span>
+        </div>
+        <div class="summary-row total">
+          <span>Final Price (ยอดสุทธิ)</span>
+          <span id="final-price">฿ 0.00</span>
+        </div>
+      </div>
+
+      <button class="submit-btn" id="submit-btn" onclick="handleSubmit()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        บันทึกการชาร์จ
+      </button>
+
+      <div class="toast" id="toast">บันทึกข้อมูลสำเร็จแล้ว!</div>
+      <div class="error" id="error">เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง</div>
+
+      <a class="report-btn" id="report-btn" href="#" target="_blank">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/></svg>
+        ดูรายงาน
+      </a>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('charge-date').value = new Date().toISOString().split('T')[0];
+
+    let stationsData = [];
+    let currentRate = null;
+    let priceManuallyEdited = false;
+
+    function loadStations() {
+      google.script.run
+        .withSuccessHandler(function(json) {
+          stationsData = JSON.parse(json);
+          const select = document.getElementById('station');
+          while (select.options.length > 1) select.remove(1);
+          stationsData.forEach(function(s) {
+            const opt = document.createElement('option');
+            opt.value = s.name;
+            opt.textContent = s.name;
+            select.add(opt);
+          });
+          const newOpt = document.createElement('option');
+          newOpt.value = '__new__';
+          newOpt.textContent = '+ เพิ่มสถานีใหม่...';
+          select.add(newOpt);
+        })
+        .getStations();
+    }
+
+    function handleStationChange() {
+      const val = document.getElementById('station').value;
+      const custom = document.getElementById('station-custom');
+
+      if (val === '__new__') {
+        custom.style.display = 'block';
+        custom.focus();
+      } else {
+        custom.style.display = 'none';
+        custom.value = '';
+      }
+
+      currentRate = null;
+      priceManuallyEdited = false;
+      document.getElementById('btn-onpeak').classList.remove('active');
+      document.getElementById('btn-offpeak').classList.remove('active');
+      document.getElementById('rate-info').style.display = 'none';
+      document.getElementById('peak-toggle').style.display = 'none';
+
+      const s = stationsData.find(function(x) { return x.name === val; });
+      if (!s) return;
+
+      const hasBoth = s.onPeak && s.offPeak;
+      if (hasBoth) {
+        document.getElementById('peak-toggle').style.display = 'flex';
+      } else if (s.singlePrice) {
+        currentRate = s.singlePrice;
+        document.getElementById('rate-value').textContent = currentRate.toFixed(2);
+        document.getElementById('rate-info').style.display = 'block';
+        autoFillPrice();
+      }
+    }
+
+    function setPeak(type) {
+      const val = document.getElementById('station').value;
+      const s = stationsData.find(function(x) { return x.name === val; });
+      if (!s) return;
+
+      currentRate = type === 'on' ? s.onPeak : s.offPeak;
+      priceManuallyEdited = false;
+
+      document.getElementById('btn-onpeak').classList.toggle('active', type === 'on');
+      document.getElementById('btn-offpeak').classList.toggle('active', type === 'off');
+
+      if (currentRate) {
+        document.getElementById('rate-value').textContent = currentRate.toFixed(2);
+        document.getElementById('rate-info').style.display = 'block';
+        autoFillPrice();
+      }
+    }
+
+    function priceEdited() {
+      priceManuallyEdited = true;
+      calcTotal();
+    }
+
+    function autoFillPrice() {
+      if (!currentRate || priceManuallyEdited) return;
+      const kwh = parseFloat(document.getElementById('kwh').value) || 0;
+      if (kwh > 0) {
+        document.getElementById('price').value = (currentRate * kwh).toFixed(2);
+        calcTotal();
+      }
+    }
+
+    loadStations();
+
+    function calcTotal() {
+      const price = parseFloat(document.getElementById('price').value) || 0;
+      const discount = parseFloat(document.getElementById('discount').value) || 0;
+      const kwh = parseFloat(document.getElementById('kwh').value) || 0;
+
+      const final = Math.max(0, price - discount);
+      document.getElementById('final-price').textContent = '฿ ' + final.toFixed(2);
+
+      if (kwh > 0) {
+        document.getElementById('baht-kwh').textContent = (final / kwh).toFixed(2) + ' บาท/kWh';
+      } else {
+        document.getElementById('baht-kwh').textContent = '- บาท/kWh';
+      }
+    }
+
+    function handleSubmit() {
+      const date = document.getElementById('charge-date').value;
+      const selectEl = document.getElementById('station');
+      const station = selectEl.value === '__new__'
+        ? document.getElementById('station-custom').value.trim()
+        : selectEl.value;
+      const price = parseFloat(document.getElementById('price').value);
+      const kwh = parseFloat(document.getElementById('kwh').value);
+
+      if (!date || !station || isNaN(price) || isNaN(kwh)) {
+        alert('กรุณากรอกข้อมูลให้ครบถ้วน (date, station, price before discount, kwh)');
+        return;
+      }
+
+      const discount = parseFloat(document.getElementById('discount').value) || 0;
+      const finalPrice = Math.max(0, price - discount);
+      const bahtPerKwh = kwh > 0 ? parseFloat((finalPrice / kwh).toFixed(2)) : null;
+      const trip = document.getElementById('trip').value.trim();
+
+      const data = {
+        date,
+        station,
+        trip: trip || '',
+        priceBeforeDiscount: price,
+        kwh,
+        discount,
+        finalPrice,
+        bahtPerKwh,
+      };
+
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = true;
+      btn.innerHTML = 'กำลังบันทึก...';
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          btn.disabled = false;
+          btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> บันทึกการชาร์จ';
+
+          document.getElementById('toast').style.display = 'block';
+          document.getElementById('error').style.display = 'none';
+          setTimeout(() => document.getElementById('toast').style.display = 'none', 3000);
+
+          // reset form
+          document.getElementById('station').selectedIndex = 0;
+          document.getElementById('station-custom').style.display = 'none';
+          document.getElementById('station-custom').value = '';
+          document.getElementById('peak-toggle').style.display = 'none';
+          document.getElementById('rate-info').style.display = 'none';
+          document.getElementById('btn-onpeak').classList.remove('active');
+          document.getElementById('btn-offpeak').classList.remove('active');
+          currentRate = null;
+          priceManuallyEdited = false;
+          loadStations();
+          document.getElementById('trip').value = '';
+          document.getElementById('price').value = '';
+          document.getElementById('kwh').value = '';
+          document.getElementById('discount').value = '';
+          document.getElementById('charge-date').value = new Date().toISOString().split('T')[0];
+          calcTotal();
+        })
+        .withFailureHandler(function(err) {
+          btn.disabled = false;
+          btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> บันทึกการชาร์จ';
+
+          document.getElementById('error').style.display = 'block';
+          document.getElementById('toast').style.display = 'none';
+          setTimeout(() => document.getElementById('error').style.display = 'none', 4000);
+        })
+        .saveCharge(data);
+    }
+
+    // ดึง URL ของ Web App แล้วต่อ ?page=dashboard
+    google.script.run
+      .withSuccessHandler(function(url) {
+        document.getElementById('report-btn').href = url + '?page=dashboard';
+      })
+      .getScriptUrl();
+  </script>
+</body>
+</html>
