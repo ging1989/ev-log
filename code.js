@@ -256,6 +256,64 @@ function getScriptUrl() {
 }
 
 /**
+ * Return all charging logs as a JSON string for google.script.run in dashboard
+ */
+function getDataJson() {
+
+  const sheet = getSheet(SHEET_NAMES.EV_LOG);
+
+  const rows = sheet.getDataRange().getValues();
+
+  if (rows.length <= 1) {
+    return JSON.stringify([]);
+  }
+
+  const data = [];
+
+  for (let i = 1; i < rows.length; i++) {
+
+    const row = rows[i];
+
+    if (!row[0]) continue;
+
+    data.push({
+      id: row[0],
+
+      createdAt: row[1]
+        ? Utilities.formatDate(
+            new Date(row[1]),
+            Session.getScriptTimeZone(),
+            'yyyy-MM-dd HH:mm:ss'
+          )
+        : '',
+
+      date: row[2] instanceof Date
+        ? Utilities.formatDate(
+            row[2],
+            Session.getScriptTimeZone(),
+            'yyyy-MM-dd'
+          )
+        : String(row[2] || ''),
+
+      station: row[3] || '',
+      trip: row[4] || '',
+
+      priceBeforeDiscount: Number(row[5]) || 0,
+      kwh: Number(row[6]) || 0,
+      discount: Number(row[7]) || 0,
+      finalPrice: Number(row[8]) || 0,
+      bahtPerKwh: Number(row[9]) || 0
+    });
+  }
+
+  data.sort(function(a, b) {
+    return new Date(b.date) - new Date(a.date);
+  });
+
+  return JSON.stringify(data);
+}
+
+/**
  * JSON response helper
  */
 function jsonResponse(data) {
