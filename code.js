@@ -20,7 +20,7 @@ function doGet(e) {
 
     if (page === 'dashboard') {
       return HtmlService
-        .createHtmlOutputFromFile('dashboard')
+        .createHtmlOutputFromFile('Dashboard')
         .setTitle('EV Charging Report');
     }
 
