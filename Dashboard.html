@@ -185,7 +185,7 @@ function renderDist(data){
   const bins=[0,50,100,150,200,250,300,400];
   const counts=new Array(bins.length-1).fill(0);
   data.forEach(d=>{for(let i=0;i<bins.length-1;i++){if(d.finalPrice>=bins[i]&&(i===bins.length-2||d.finalPrice<bins[i+1])){counts[i]++;break;}}});
-  const labels=bins.slice(0,-1).map((b,i)=>b+'–'+(i===bins.length-2?'300+':bins[i+1]));
+  const labels=bins.slice(0,-1).map((b,i)=>i===bins.length-2?b+'+':b+'–'+bins[i+1]);
   if(charts.dist)charts.dist.destroy();
   charts.dist=new Chart(document.getElementById('chart-dist'),{type:'bar',data:{labels,datasets:[{data:counts,backgroundColor:'#b8d0ea',borderColor:'#5b8fc9',borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'#eef1f6'},ticks:{stepSize:1,font:{size:11}}}}}});
 }

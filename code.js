@@ -16,6 +16,14 @@ function doGet(e) {
 
   try {
 
+    const page = e.parameter.page;
+
+    if (page === 'dashboard') {
+      return HtmlService
+        .createHtmlOutputFromFile('dashboard')
+        .setTitle('EV Charging Report');
+    }
+
     const action = e.parameter.action;
 
     switch (action) {
@@ -26,11 +34,17 @@ function doGet(e) {
       case 'getStations':
         return getStations();
 
+      case 'getAppUrl':
+        return jsonResponse({
+          success: true,
+          data: ScriptApp.getService().getUrl()
+        });
+
       default:
         return jsonResponse({
           success: false,
           message: 'Invalid action'
-        }, 400);
+        });
     }
 
   } catch (error) {
@@ -38,7 +52,7 @@ function doGet(e) {
     return jsonResponse({
       success: false,
       message: error.toString()
-    }, 500);
+    });
   }
 }
 
@@ -55,7 +69,7 @@ function doPost(e) {
       return jsonResponse({
         success: false,
         message: 'No request body found'
-      }, 400);
+      });
     }
 
     const body = JSON.parse(e.postData.contents);
@@ -93,7 +107,7 @@ function doPost(e) {
     return jsonResponse({
       success: false,
       message: error.message || error.toString()
-    }, 500);
+    });
   }
 }
 
@@ -132,13 +146,13 @@ function getData() {
           )
         : '',
 
-      date: row[2]
+      date: row[2] instanceof Date
         ? Utilities.formatDate(
-            new Date(row[2]),
+            row[2],
             Session.getScriptTimeZone(),
             'yyyy-MM-dd'
           )
-        : '',
+        : String(row[2] || ''),
 
       station: row[3] || '',
       trip: row[4] || '',
@@ -232,6 +246,13 @@ function getSheet(sheetName) {
   }
 
   return sheet;
+}
+
+/**
+ * Return the deployed web app URL (called by dashboard back button via google.script.run)
+ */
+function getScriptUrl() {
+  return ScriptApp.getService().getUrl();
 }
 
 /**

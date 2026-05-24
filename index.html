@@ -1,9 +1,9 @@
 <script>
   const API_URL =
-    'https://script.google.com/macros/s/AKfycbz8syGgDfKmZJPnl3Oqgf0P85ayqqGDdz6K3fQC4Wy8OjbO1tXusOl9DPa5nf0ewC-m/exec;
+    'https://script.google.com/macros/s/AKfycbz8syGgDfKmZJPnl3Oqgf0P85ayqqGDdz6K3fQC4Wy8OjbO1tXusOl9DPa5nf0ewC-m/exec';
 
   const REPORT_URL =
-    '#';
+    API_URL + '?page=dashboard';
 
   document.getElementById('report-btn').href =
     REPORT_URL;
@@ -352,6 +352,13 @@
       alert(
         'กรุณากรอกข้อมูลให้ครบ'
       );
+
+      return;
+    }
+
+    if (kwh <= 0) {
+
+      alert('kWh ต้องมากกว่า 0');
 
       return;
     }
