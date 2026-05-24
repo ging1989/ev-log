@@ -1,3 +1,123 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>EV Charging Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700&family=Noto+Sans+Thai:wght@100..900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans Thai',sans-serif;background:#f0f3f7;color:#1a2233;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:1.5rem 1rem;}
+
+.topbar{width:100%;max-width:480px;display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;}
+.page-title{font-family:'Google Sans','Noto Sans Thai',sans-serif;font-size:20px;font-weight:700;color:#1a2e4a;}
+.report-btn{display:flex;align-items:center;gap:6px;font-size:13px;color:#185FA5;background:#E6F1FB;border:none;border-radius:8px;padding:7px 14px;cursor:pointer;font-family:'Noto Sans Thai',sans-serif;text-decoration:none;}
+.report-btn:hover{background:#B5D4F4;}
+
+.card{background:#fff;border-radius:16px;border:1px solid #e4eaf2;padding:1.5rem;width:100%;max-width:480px;}
+
+.field{margin-bottom:1rem;}
+.label{font-size:12px;color:#6b8aad;font-weight:500;margin-bottom:5px;letter-spacing:.02em;}
+.input,.select{width:100%;padding:10px 12px;border:1px solid #d0d9e8;border-radius:10px;font-size:14px;font-family:'Noto Sans Thai',sans-serif;color:#1a2233;background:#fff;outline:none;transition:border-color 0.15s;}
+.input:focus,.select:focus{border-color:#185FA5;}
+
+.peak-toggle{display:none;gap:8px;margin-bottom:1rem;}
+.peak-btn{flex:1;padding:9px;border:1.5px solid #d0d9e8;border-radius:10px;background:#fff;font-size:13px;font-family:'Noto Sans Thai',sans-serif;cursor:pointer;transition:all 0.15s;color:#555;}
+.peak-btn.active{background:#1a2e4a;color:#fff;border-color:#1a2e4a;}
+
+.rate-info{display:none;font-size:12px;color:#6b8aad;padding:7px 12px;background:#f0f3f7;border-radius:8px;margin-top:-4px;margin-bottom:1rem;}
+.rate-info span{font-weight:600;color:#185FA5;}
+
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem;}
+.row2 .field{margin-bottom:0;}
+
+.summary{background:#f0f3f7;border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;}
+.sum-final{font-family:'Google Sans','Noto Sans Thai',sans-serif;font-size:26px;font-weight:700;color:#1a2e4a;}
+.sum-sub{font-size:12px;color:#6b8aad;margin-top:3px;}
+
+.submit-btn{width:100%;padding:13px;background:#1a2e4a;color:#fff;border:none;border-radius:12px;font-size:15px;font-family:'Noto Sans Thai',sans-serif;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background 0.15s;}
+.submit-btn:hover{background:#253f63;}
+.submit-btn:disabled{background:#b0bbc8;cursor:not-allowed;}
+
+.toast{display:none;position:fixed;top:24px;left:50%;transform:translateX(-50%);background:#1D9E75;color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;font-family:'Noto Sans Thai',sans-serif;box-shadow:0 4px 20px rgba(0,0,0,0.15);z-index:999;}
+.error-msg{display:none;background:#FDECEA;color:#C0392B;border:1px solid #F5C6C0;border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:1rem;text-align:center;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="page-title">EV Charging Log</span>
+  <a class="report-btn" id="report-btn" href="#">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 17V13m4 4V9m4 8V11"/></svg>
+    ดูรายงาน
+  </a>
+</div>
+
+<div class="card">
+
+  <div id="error" class="error-msg">เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง</div>
+
+  <div class="field">
+    <div class="label">วันที่ชาร์จ</div>
+    <input type="date" class="input" id="charge-date"/>
+  </div>
+
+  <div class="field">
+    <div class="label">สถานีชาร์จ</div>
+    <select class="select" id="station" onchange="handleStationChange()">
+      <option value="">— เลือกสถานี —</option>
+    </select>
+    <input type="text" class="input" id="station-custom" placeholder="ชื่อสถานีใหม่" style="display:none;margin-top:8px;"/>
+  </div>
+
+  <div id="peak-toggle" class="peak-toggle">
+    <button class="peak-btn" id="btn-onpeak" onclick="setPeak('on')">On-Peak</button>
+    <button class="peak-btn" id="btn-offpeak" onclick="setPeak('off')">Off-Peak</button>
+  </div>
+
+  <div id="rate-info" class="rate-info">อัตราค่าไฟ: <span id="rate-value">—</span> บาท/kWh</div>
+
+  <div class="row2">
+    <div class="field">
+      <div class="label">จำนวน (kWh)</div>
+      <input type="number" class="input" id="kwh" placeholder="0.00" step="0.01" min="0" oninput="autoFillPrice()"/>
+    </div>
+    <div class="field">
+      <div class="label">ค่าไฟ (บาท)</div>
+      <input type="number" class="input" id="price" placeholder="0.00" step="0.01" min="0" oninput="priceEdited()"/>
+    </div>
+  </div>
+
+  <div class="row2">
+    <div class="field">
+      <div class="label">ส่วนลด (บาท)</div>
+      <input type="number" class="input" id="discount" placeholder="0.00" step="0.01" min="0" oninput="calcTotal()"/>
+    </div>
+    <div class="field">
+      <div class="label">เส้นทาง / Trip</div>
+      <input type="text" class="input" id="trip" placeholder="เช่น ไป-กลับบ้าน"/>
+    </div>
+  </div>
+
+  <div class="summary">
+    <div>
+      <div class="sum-final" id="final-price">฿ 0.00</div>
+      <div class="sum-sub" id="baht-kwh">- บาท/kWh</div>
+    </div>
+    <div style="font-size:12px;color:#6b8aad;">ยอดสุทธิ</div>
+  </div>
+
+  <button class="submit-btn" id="submit-btn" onclick="handleSubmit()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    บันทึกการชาร์จ
+  </button>
+
+</div>
+
+<div class="toast" id="toast">✓ บันทึกสำเร็จแล้ว</div>
+
 <script>
   const API_URL =
     'https://script.google.com/macros/s/AKfycbz8syGgDfKmZJPnl3Oqgf0P85ayqqGDdz6K3fQC4Wy8OjbO1tXusOl9DPa5nf0ewC-m/exec';
@@ -607,3 +727,5 @@
     calcTotal();
   }
 </script>
+</body>
+</html>
